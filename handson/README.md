@@ -119,7 +119,8 @@ Installed:
 Complete!
 [root@fbcf771e295c /]# 
 ```
-[ローカルのyumリポジトリを利用](https://access.redhat.com/documentation/ja-JP/Red_Hat_Enterprise_Linux/7/html/System_Administrators_Guide/sec-Configuring_Yum_and_Yum_Repositories.html#sec-Yum_Repository)している場合は、docker cpコマンドを利用して、コンテナにyumのプライベートリポジトリを利用するための設定ファイルをコピーする必要があります。
+
+ローカルのyumリポジトリを利用している場合は、docker cpコマンドを利用して、コンテナにyumのプライベートリポジトリを利用するための設定ファイルをコピーする必要があります。
 
 ```
 # docker cp /etc/yum.repos.d/local.repo test1:/etc/yum.repos.d/
@@ -161,6 +162,7 @@ AH00558: httpd: Could not reliably determine the server's fully qualified domain
 ```
 
 端末の別タブまたはFirefoxから、コンテナのIPアドレスにアクセスてWebサービスが起動し、コンテナのホスト名`fbcf771e295c`/コンテナのIPアドレス`172.17.0.2`/アクセス元のホストのIPアドレス`172.17.0.1`を確認します。コンテナには、Dockerサービスが起動された際に自動的に作成される仮想ネットワークアドレス`172.17.0.0/16`から、空いているIPアドレスが順番に割り当てられていきます。
+
 ```
 $ curl http://172.17.0.2/public/test.php
 <html>
@@ -171,6 +173,7 @@ Hello OpenShift 2017-01-20<br><br>Host Name: fbcf771e295c<br>Host IP: 172.17.0.2
 </html>
 $ 
 ```
+
 
 ### コンテナの変更保存
 コンテナから抜けた後に、これまで加えてきた変更をベースとなるDockerイメージにコミットして、新しいDockerイメージとして保存します。
