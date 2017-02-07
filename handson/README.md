@@ -15,13 +15,12 @@
     - [Dockerのログ](#dockerのログ)
     - [Dockerの各種コマンド](#dockerの各種コマンド)
   - [OpenShiftの利用準備](#openshiftの利用準備)
-  - [OpenShiftの利用(GUI編)](#openshiftの利用gui編)
+  - [OpenShiftの利用](#openshiftの利用)
     - [OpenShift環境へのログインとアプリケーション作成(GUI編)](#openshift環境へのログインとアプリケーション作成gui編)
-  - [OpenShiftの利用(CUI編)](#openshiftの利用cui編)
     - [OpenShift環境へのログインとアプリケーション作成(CUI編)](#openshift環境へのログインとアプリケーション作成cui編)
-  - [OpenShiftでのアプリケーション更改](#openshiftでのアプリケーション更改)
-  - [OpenShiftの状態監視](#openshiftの状態監視)
-  - [OpenShiftのログ](#openshiftのログ)
+    - [OpenShiftでのアプリケーション更改](#openshiftでのアプリケーション更改)
+    - [OpenShiftの状態監視](#openshiftの状態監視)
+    - [OpenShiftのログ](#openshiftのログ)
   - [Revision History](#revision-history)
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -434,7 +433,7 @@ Step4. HTPasswd認証用のファイルを作成して、OpenShiftの設定フ�
 
 Step5. `https://OPENSHIFT_HOST_FQDN:8443` にアクセスするとOpenShiftのログイン画面が表示されるので、Step4.で作成したユーザ情報を利用してログインし、OpenShift環境を利用できるようになります。
 
-## OpenShiftの利用(GUI編)
+## OpenShiftの利用
 ### OpenShift環境へのログインとアプリケーション作成(GUI編)
 
 Step1. `https://OPENSHIFT_HOST_FQDN:8443`にFirefoxからアクセスして、ログインします。その後、[New Project]をクリックして適当な名前を入力し、[create]をクリックします。この作業で、OpenShift環境でアプリケーションを開発する場所となるプロジェクトを作成します。
@@ -457,7 +456,6 @@ Client IP: 10.128.0.1
 
 このPodのIPアドレスは、OpenShift環境内で利用される[SDN(OpenvSwitch)](https://docs.openshift.com/container-platform/latest/architecture/additional_concepts/sdn.html)により作成された、外部ホストと通信するためのネットワークアドレスから割り当てられたものになります。
 
-## OpenShiftの利用(CUI編)
 ### OpenShift環境へのログインとアプリケーション作成(CUI編)
 上記GUI編で紹介した手順を、CLIで実行します。まずOpenShift環境にログインして、プロジェクトを作成します。
 ```
@@ -524,7 +522,7 @@ oc exposeコマンドにより自動的に外部からのアクセス用URLが�
 # iptables -t nat -nL
 ```
 
-## OpenShiftでのアプリケーション更改
+### OpenShiftでのアプリケーション更改
 
 OpenShift環境とGitリポジトリがネットワーク通信が可能な場合、Gitリポジトリで管理するソースコードに対して変更がコミットされた場合、自動的にDockerイメージのリビルドとアプリケーションのデプロイを実行するように設定できます。ただし、GitリポジトリからOpenShift環境へのネットワーク通信が不可、ソースコード変更のタイミングで毎回Dockerイメージをリビルドしたくない、といった場合はソースコード変更コミットの後で、手動でDockerイメージのリビルドができます。<br>
 <br>
@@ -539,10 +537,10 @@ $ oc start-build testphp01
 ```
 リビルドを実行すると、Dockerイメージが新しく作成されて新規Podが起動した後に、古いPodが削除されることをGUIで確認できます。
 
-## OpenShiftの状態監視
+### OpenShiftの状態監視
 OpenShift環境では各Pod(Pod内のプロセス含む)やNodeの状態監視を行っており、Pod(Pod内のプロセス)やNodeに障害が発生した場合、正常NodeでPodを自動的に再起動します。
 
-## OpenShiftのログ
+### OpenShiftのログ
 アプリケーション作成やデプロイ時などのログについてはGUIから確認できる他に、[oc logsコマンド](https://docs.openshift.com/container-platform/latest/cli_reference/basic_cli_operations.html#troubleshooting-and-debugging-cli-operations)でも確認できます。OpenShiftではアプリケーションだけでなく、アプリケーション作成やデプロイ専用のPodも作成されるのでこれらのPodに関するログも見ることができます。
 
 ## Revision History
