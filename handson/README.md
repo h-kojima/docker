@@ -444,7 +444,7 @@ Step2. カタログ画面から[PHP]をクリックして、[PHP, 5.6 - latest]�
 
 Step3. [Continue to overview]をクリックすると、以下のような画面が表示されますので、ここからDockerイメージ作成時のログやコンテナの実行状態を確認できます。なお、OpenShiftではコンテナをPodという単位で管理しています。Podには、コンテナとOpenShift環境でコンテナを起動する際の設定(開放するポート番号やコンテナに接続する外部ストレージなど)が含まれます。
 
-![モデル図](https://github.com/h-kojima/openshift/blob/master/ocp3u3/images/openshift-deployment-model.png)
+![Overview](https://github.com/h-kojima/docker/blob/master/handson/images/openshift-01.png)
 
 Step4. 作成したアプリケーション名の右横にあるURLをクリックするとコンテナ内でPHPが実施され、Podのホスト名/PodのIPアドレス/Podへのアクセス元のIPアドレスが確認できます。このPodのIPアドレスは、OpenShift環境内で利用される[SDN(OpenvSwitch)](https://docs.openshift.com/container-platform/latest/architecture/additional_concepts/sdn.html)により作成された、外部ホストと通信するためのネットワークアドレスから割り当てられたものになります。
 
@@ -517,7 +517,7 @@ OpenShift環境とGitリポジトリがネットワーク通信が可能な場�
 <br>
 リビルドするための方法は、左側の[Builds]メニューから確認できます。
 
-![モデル図](https://github.com/h-kojima/openshift/blob/master/ocp3u3/images/openshift-deployment-model.png)
+![ビルド設定](https://github.com/h-kojima/docker/blob/master/handson/images/openshift-02.png)
 
 GUIの場合はこの画面の[Start Build]をクリックします。CUIの場合は以下のコマンドを実行します。
 
