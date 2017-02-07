@@ -11,9 +11,11 @@
     - [コンテナの変更保存](#コンテナの変更保存)
     - [DockerfileによるカスタムDockerイメージの作成](#dockerfileによるカスタムdockerイメージの作成)
     - [プライベートリポジトリへのDockerイメージの保存](#プライベートリポジトリへのdockerイメージの保存)
+    - [コンテナのメトリクス監視](#コンテナのメトリクス監視)
     - [Dockerのログ](#dockerのログ)
     - [Dockerの各種コマンド](#dockerの各種コマンド)
   - [OpenShiftの利用準備](#openshiftの利用準備)
+  - [OpenShiftの利用](#openshiftの利用)
   
   - [Revision History](#revision-history)
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -365,6 +367,16 @@ latest: digest: sha256:c0377175ad942ff605a405ee99744c72d851bd50ea78f87a2b15208d5
 {"repositories":["myrhel7_ver01"]}
 #
 ```
+### コンテナのメトリクス監視
+
+docker statsコマンドで、CPU, メモリ, ネットワークI/O, ブロックI/Oの情報を確認できます。
+
+```
+# docker stats test1 test2
+CONTAINER           CPU %               MEM USAGE / LIMIT       MEM %               NET I/O             BLOCK I/O           PIDS
+76af75bb883d        0.00%               4.062 MiB / 1.796 GiB   0.22%               788 B / 648 B       5.138 MB / 0 B      1
+7a0f8cedbdd6        0.00%               4.07 MiB / 1.796 GiB    0.22%               1.296 kB / 648 B    5.391 MB / 0 B      1
+```
 
 ### Dockerのログ
 
@@ -426,9 +438,85 @@ Step4. HTPasswd認証用のファイルを作成して、OpenShiftの設定フ�
 # cp /root/htpasswd /etc/origin/master/
 ```
 
-Step5. `https://OPENSHIFT_HOST_FQDN:8443` にアクセスするとOpenShiftのログイン画面が表示されるので、 Step4.で作成したユーザ情報を利用してログインし、OpenShift環境を利用できるようになります。
+Step5. `https://OPENSHIFT_HOST_FQDN:8443` にアクセスするとOpenShiftのログイン画面が表示されるので、Step4.で作成したユーザ情報を利用してログインし、OpenShift環境を利用できるようになります。
 
-## OpenShiftの利用
+## OpenShiftの利用(GUI編)
+### OpenShift環境へのログインとアプリケーション作成
+
+Step1. `https://OPENSHIFT_HOST_FQDN:8443`にFirefoxからアクセスして、ログインします。その後、[New Project]をクリックして適当な名前を入力し、[create]をクリックします。この作業で、OpenShift環境でアプリケーションを開発する場所となるプロジェクトを作成します。
+
+Step2. カタログ画面から[PHP]をクリックして、[PHP, 5.6 - latest]の下にある[select]をクリックします。Nameに適当な名前を入力し、Git Repository URLには、`https://github.com/h-kojima/php-hello-world`を入力して、[Create]をクリックします。
+
+Step3. [Continue to overview]をクリックすると、以下のような画面が表示されますので、ここからDockerイメージ作成時のログやコンテナの実行状態を確認できます。なお、OpenShiftではコンテナをPodという単位で管理しています。Podには、コンテナとOpenShift環境でコンテナを起動する際の設定(開放するポート番号やコンテナに接続する外部ストレージなど)が含まれます。
+
+![モデル図](https://github.com/h-kojima/openshift/blob/master/ocp3u3/images/openshift-deployment-model.png)
+
+Step4. 作成したアプリケーション名の右横にあるURLをクリックするとコンテナ内でPHPが実施され、Podのホスト名/PodのIPアドレス/Podへのアクセス元のIPアドレスが確認できます。このPodのIPアドレスは、OpenShift環境内で利用される[SDN(OpenvSwitch)](https://docs.openshift.com/container-platform/latest/architecture/additional_concepts/sdn.html)により作成された、外部ホストと通信するためのネットワークアドレスから割り当てられたものになります。
+
+## OpenShiftの利用(CUI編)
+### OpenShift環境へのログインとアプリケーション作成
+上記GUI編で紹介した手順を、CLIで実行します。まずOpenShift環境にログインして、プロジェクトを作成します。
+```
+$ sudo yum -y install atomic-openshift-clients ### OpenShiftのCLIツールインストール
+$ oc login -u USERNAME https://OPENSHIFT_HOST_FQDN:8443 ### OpenShift環境へのリモートログイン
+$ oc new-project NEW_PROJECT
+```
+
+次にPHPアプリケーションを作成します。Gitリポジトリを指定するだけでアプリケーションを作成できます。作成するアプリケーションの名前を`--name=`で指定することができます。
+```
+$ oc new-app --name=testphp01 https://github.com/h-kojima/php-hello-world
+--> Found image ee994c3 (3 weeks old) in image stream "openshift/php" under tag "5.6" for "php"
+
+    Apache 2.4 with PHP 5.6 
+    ----------------------- 
+    Platform for building and running PHP 5.6 applications
+
+    Tags: builder, php, php56, rh-php56
+
+    * The source repository appears to match: php
+    * A source build using source code from https://github.com/h-kojima/php-hello-world will be created
+      * The resulting image will be pushed to image stream "testphp3:latest"
+      * Use 'start-build' to trigger a new build
+    * This image will be deployed in deployment config "testphp3"
+    * Port 8080/tcp will be load balanced by service "testphp3"
+      * Other containers can access this service through the hostname "testphp3"
+
+--> Creating resources ...
+    imagestream "testphp01" created
+    buildconfig "testphp01" created
+    deploymentconfig "testphp01" created
+    service "testphp01" created
+--> Success
+    Build scheduled, use 'oc logs -f bc/testphp3' to track its progress.
+    Run 'oc status' to view your app.
+$
+```
+作成されたアプリケーションは、OpenShift環境の各Node(Podを実行するサーバ)のコンテナ間通信ネットワークで利用されるIPアドレスを指定してアクセスできます。このIPアドレスは、oc getコマンドで確認できます。
+
+```
+$ oc get pods
+NAME                        READY     STATUS      RESTARTS   AGE
+testphp01-1-build           0/1       Completed   0          1h
+testphp01-1-e1vjn           1/1       Running     0          1h
+$ oc get service
+NAME              CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
+testphp01         172.30.135.78    <none>        8080/TCP   1h
+$ curl http://172.30.135.78:8080
+Hello Docker 2017-02-03<br><br>Host Name: testphp3-1-c3i0y<br>Host IP: 10.128.0.15<br>Client IP: 10.128.0.1
+```
+
+ただし、このネットワーク`172.30.0.0/16`のアクセスは各Nodeでしか利用できませんので、このままだと作成したアプリケーションは外部ホストからアクセスできません。そこで、oc exposeコマンドを実行して、各Nodeでのみ利用できるサービスアクセス用のIPアドレスへの経路情報を追加します。
+
+```
+$ oc expose service testphp01
+route "testphp01" exposed
+$ oc get route
+NAME       HOST/PORT                                PATH       SERVICES   PORT       TERMINATION
+testphp01  testphp01-test1.192.168.199.201.xip.io              testphp01  8080-tcp
+```
+
+oc exposeコマンドにより自動的に外部からのアクセス用URLが作成され、このURLを利用して外部ホストからアプリケーションにアクセスできるようになります。上記の例では、[xip.io](https://xip.io/)をURLのドメインとして利用することで、`192.168.199.201`にアクセスするようになります。
+
 
 ## Revision History
 
