@@ -422,7 +422,6 @@ OPENSHIFT_HOST_FQDN
 [nodes]
 OPENSHIFT_HOST_FQDN openshift_node_labels="{'region': 'infra'}" openshift_schedulable=true
 
-#
 # yum -y install atomic-openshift-utils
 # ansible-playbook -i /root/sample-single-hosts /usr/share/ansible/openshift-ansible/playbooks/byo/config.yml
 ```
