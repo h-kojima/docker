@@ -515,8 +515,27 @@ NAME       HOST/PORT                                PATH       SERVICES   PORT  
 testphp01  testphp01-test1.192.168.199.201.xip.io              testphp01  8080-tcp
 ```
 
-oc exposeコマンドにより自動的に外部からのアクセス用URLが作成され、このURLを利用して外部ホストからアプリケーションにアクセスできるようになります。上記の例では、[xip.io](https://xip.io/)をURLのドメインとして利用することで、`192.168.199.201`にアクセスするようになります。
+oc exposeコマンドにより自動的に外部からのアクセス用URLが作成され、このURLを利用して外部ホストからアプリケーションにアクセスできるようになります。上記の例では、[xip.io](https://xip.io/)をURLのドメインとして利用することで、`192.168.199.201`にアクセスするようになっています。
 
+### アプリケーションの更改
+
+OpenShift環境とGitリポジトリがネットワーク通信が可能な場合、Gitリポジトリで管理するソースコードに対して変更がコミットされた場合、自動的にDockerイメージのリビルドとアプリケーションのデプロイを実行するように設定できます。ただし、GitリポジトリからOpenShift環境へのネットワーク通信が不可、ソースコード変更のタイミングで毎回Dockerイメージをリビルドしたくない、といった場合はソースコード変更コミットの後で、手動でDockerイメージのリビルドができます。<br>
+<br>
+リビルドするための方法は、左側の[Builds]メニューから確認できます。
+
+![モデル図](https://github.com/h-kojima/openshift/blob/master/ocp3u3/images/openshift-deployment-model.png)
+GUIの場合はこの画面の[Start Build]をクリックします。CUIの場合は以下のコマンドを実行します。
+
+```
+$ oc start-build testphp01
+```
+リビルドを実行すると、Dockerイメージが新しく作成されて新規Podが起動した後に、古いPodが削除されることをGUIで確認できます。
+
+### OpenShiftのPod状態監視
+OpenShift環境では各Pod(Pod内のプロセス含む)やNodeの状態監視を行っており、Pod(Pod内のプロセス)やNodeに障害が発生した場合、正常NodeでPodを自動的に再起動します。
+
+### OpenShiftのログ
+アプリケーション作成やデプロイ時などのログについてはGUIから確認できる他に、[oc logsコマンド](https://docs.openshift.com/container-platform/3.4/cli_reference/basic_cli_operations.html#troubleshooting-and-debugging-cli-operations)でも確認できます。OpenShiftではアプリケーションだけでなく、アプリケーション作成やデプロイ専用のPodも作成されるのでこれらのPodに関するログも見ることができます。
 
 ## Revision History
 
