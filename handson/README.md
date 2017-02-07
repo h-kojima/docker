@@ -13,6 +13,8 @@
     - [プライベートリポジトリへのDockerイメージの保存](#プライベートリポジトリへのdockerイメージの保存)
     - [Dockerのログ](#dockerのログ)
     - [Dockerの各種コマンド](#dockerの各種コマンド)
+  - [OpenShiftの利用準備](#openshiftの利用準備)
+  
   - [Revision History](#revision-history)
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -371,6 +373,12 @@ Dockerのログについては、Dockerサービスで設定するロギング�
 ### Dockerの各種コマンド
 
 イメージの検索/取得/削除やコンテナ実行/停止などのコマンド一覧は[こちら](https://docs.docker.com/engine/reference/commandline/docker/)をご参照ください。
+
+## OpenShiftの利用準備
+Step1. OpenShift環境をインストールする最新版のRHEL7マシン(物理でも仮想でも可)を1台用意します。
+
+Step2. 
+
 ## Revision History
 
 2017-02-07 初版リリース
