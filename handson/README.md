@@ -477,11 +477,11 @@ $ oc new-app --name=testphp01 https://github.com/h-kojima/php-hello-world
 
     * The source repository appears to match: php
     * A source build using source code from https://github.com/h-kojima/php-hello-world will be created
-      * The resulting image will be pushed to image stream "testphp3:latest"
+      * The resulting image will be pushed to image stream "testphp01:latest"
       * Use 'start-build' to trigger a new build
-    * This image will be deployed in deployment config "testphp3"
-    * Port 8080/tcp will be load balanced by service "testphp3"
-      * Other containers can access this service through the hostname "testphp3"
+    * This image will be deployed in deployment config "testphp01"
+    * Port 8080/tcp will be load balanced by service "testphp01"
+      * Other containers can access this service through the hostname "testphp01"
 
 --> Creating resources ...
     imagestream "testphp01" created
@@ -489,7 +489,7 @@ $ oc new-app --name=testphp01 https://github.com/h-kojima/php-hello-world
     deploymentconfig "testphp01" created
     service "testphp01" created
 --> Success
-    Build scheduled, use 'oc logs -f bc/testphp3' to track its progress.
+    Build scheduled, use 'oc logs -f bc/testphp01' to track its progress.
     Run 'oc status' to view your app.
 ```
 作成されたアプリケーションは、OpenShift環境の各Node(Podを実行するサーバ)のコンテナ間通信ネットワークで利用されるIPアドレスを指定してアクセスできます。このIPアドレスは、oc getコマンドで確認できます。
@@ -503,7 +503,7 @@ $ oc get service
 NAME              CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
 testphp01         172.30.135.78    <none>        8080/TCP   1h
 $ curl http://172.30.135.78:8080
-Hello Docker 2017-02-03<br><br>Host Name: testphp3-1-c3i0y<br>Host IP: 10.128.0.15<br>Client IP: 10.128.0.1
+Hello Docker 2017-02-03<br><br>Host Name: testphp01-1-c3i0y<br>Host IP: 10.128.0.15<br>Client IP: 10.128.0.1
 ```
 
 ただし、このネットワーク`172.30.0.0/16`のアクセスは各Nodeでしか利用できませんので、このままだと作成したアプリケーションは外部ホストからアクセスできません。そこで、oc exposeコマンドを実行して、各Nodeでのみ利用できるサービスアクセス用のIPアドレスへの経路情報を追加します。
@@ -536,7 +536,7 @@ haproxy-config.template  os_http_be.map
 haproxy.config		 os_reencrypt.map
 sh-4.2$ grep -inr testphp01 *
 haproxy.config:329:backend be_http_test1_testphp01
-os_http_be.map:1:testphp3-test1.192.168.199.201.xip.io test1_testphp01
+os_http_be.map:1:testphp01-test1.192.168.199.201.xip.io test1_testphp01
 sh-4.2$ 
 ```
 
