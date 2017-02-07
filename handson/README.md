@@ -15,8 +15,13 @@
     - [Dockerのログ](#dockerのログ)
     - [Dockerの各種コマンド](#dockerの各種コマンド)
   - [OpenShiftの利用準備](#openshiftの利用準備)
-  - [OpenShiftの利用](#openshiftの利用)
-  
+  - [OpenShiftの利用(GUI編)](#openshiftの利用(GUI編))
+    - [OpenShift環境へのログインとアプリケーション作成(GUI編)](#openshift環境へのログインとアプリケーション作成(GUI編))
+  - [OpenShiftの利用(CUI編)](#openshiftの利用(CUI編))
+    - [OpenShift環境へのログインとアプリケーション作成(CUI編)](#openshift環境へのログインとアプリケーション作成(CUI編))
+  - [OpenShiftでのアプリケーション更改](#openshiftでのアプリケーション更改)
+  - [OpenShiftの状態監視](#openshiftの状態監視)
+  - [OpenShiftのログ](#openshiftのログ)
   - [Revision History](#revision-history)
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -66,7 +71,6 @@ redhat.com   registry.access.redhat.com/rhel7
 ```
 # curl http://localhost:5000/v2/_catalog
 {"repositories":["CUSTOM_DOCKER_IMAGE_NAME"]}
-#
 ```
 
 ### Dockerイメージの取得と起動
@@ -80,14 +84,12 @@ latest: Pulling from registry.access.redhat.com/rhel7
 7bd78273b666: Pull complete 
 c196631bd9ac: Pull complete 
 Digest: sha256:0614d58c96e8d1a04a252880a6c33b48b4685cafae048a70dd9e821edf62cab9
-#
 ```
 RHEL7のDockerイメージを取得できたことを確認します。
 ```
 # docker images
 REPOSITORY                         TAG                 IMAGE ID            CREATED             SIZE
 registry.access.redhat.com/rhel7   latest              e4b79d4d89ab        3 weeks ago         192.5 MB
-#
 ```
 このイメージをベースとしたコンテナを「test1」という名前で起動してみます。`/bin/bash`を指定してコンテナに対する標準入出力を有効にしておきます。また、起動中のコンテナから抜けるには、`Ctrl-p + Ctrl-q` を入力します。
 ```
@@ -102,7 +104,6 @@ fbcf771e295c
 # docker ps
 CONTAINER ID        IMAGE                              COMMAND             CREATED             STATUS              PORTS               NAMES
 fbcf771e295c        rhel7                              "/bin/bash"         2 minutes ago       Up 2 minutes                            test1
-# 
 ```
 再びコンテナに入るには、docker attachコマンドを実施します。
 
@@ -175,7 +176,6 @@ $ curl http://172.17.0.2/public/test.php
 Hello OpenShift 2017-01-20<br><br>Host Name: fbcf771e295c<br>Host IP: 172.17.0.2<br>Client IP: 172.17.0.1</div>
 </body>
 </html>
-$ 
 ```
 
 
@@ -193,7 +193,6 @@ sha256:04ec21f714818636aaf8afd4f9cff33c775fb9902279756d8b361041824f2b29
 REPOSITORY                         TAG                 IMAGE ID            CREATED             SIZE
 myrhel7_httpd01                    latest              04ec21f71481        14 seconds ago      265.3 MB
 registry.access.redhat.com/rhel7   latest              e4b79d4d89ab        3 weeks ago         192.5 MB
-# 
 ```
 
 これで、myrhel7_httpd01という名前のDockerイメージが新しく保存されました。このmyrhel7_httpd01からtest2という名前のコンテナを起動し、Webサービスを起動してみます。
@@ -262,7 +261,6 @@ ADD run-apache.sh /root/run-apache.sh
 RUN chmod +x /root/run-apache.sh
 
 CMD ["/root/run-apache.sh"] ### コンテナ実行時に起動するコマンド(/root/run-apache.shを実行)
-# 
 ```
 
 そして、docker buildコマンドで、myrhel7_httpd02という名前のDockerイメージを作成します。
@@ -313,7 +311,6 @@ REPOSITORY                         TAG                 IMAGE ID            CREAT
 myrhel7_httpd02                    latest              f8370c6e0f52        5 seconds ago       267 MB
 myrhel7_httpd01                    latest              04ec21f71481        16 minutes ago      265.3 MB
 registry.access.redhat.com/rhel7   latest              e4b79d4d89ab        3 weeks ago         192.5 MB
-#
 ```
 
 作成したmyrhel7_httpd02から、コンテナを実行します。`-p 8080:80`で、ホストの8080番ポートにアクセスすると、コンテナの80番ポートにアクセスするようなポートフォワーディングの設定を行います。`-d`を指定することで、バックグラウンドでのコンテナ起動を行います。
@@ -335,7 +332,6 @@ Apache is running.
 Hello OpenShift 2017-01-20<br><br>Host Name: 419a59e32b32<br>Host IP: 172.17.0.4<br>Client IP: 172.17.0.1</div>
 </body>
 </html>
-#
 ```
 
 ### プライベートリポジトリへのDockerイメージの保存
@@ -365,7 +361,6 @@ latest: digest: sha256:c0377175ad942ff605a405ee99744c72d851bd50ea78f87a2b15208d5
 #
 # curl http://localhost:5000/v2/_catalog
 {"repositories":["myrhel7_ver01"]}
-#
 ```
 ### コンテナのメトリクス監視
 
@@ -441,7 +436,7 @@ Step4. HTPasswd認証用のファイルを作成して、OpenShiftの設定フ�
 Step5. `https://OPENSHIFT_HOST_FQDN:8443` にアクセスするとOpenShiftのログイン画面が表示されるので、Step4.で作成したユーザ情報を利用してログインし、OpenShift環境を利用できるようになります。
 
 ## OpenShiftの利用(GUI編)
-### OpenShift環境へのログインとアプリケーション作成
+### OpenShift環境へのログインとアプリケーション作成(GUI編)
 
 Step1. `https://OPENSHIFT_HOST_FQDN:8443`にFirefoxからアクセスして、ログインします。その後、[New Project]をクリックして適当な名前を入力し、[create]をクリックします。この作業で、OpenShift環境でアプリケーションを開発する場所となるプロジェクトを作成します。
 
@@ -454,7 +449,7 @@ Step3. [Continue to overview]をクリックすると、以下のような画面
 Step4. 作成したアプリケーション名の右横にあるURLをクリックするとコンテナ内でPHPが実施され、Podのホスト名/PodのIPアドレス/Podへのアクセス元のIPアドレスが確認できます。このPodのIPアドレスは、OpenShift環境内で利用される[SDN(OpenvSwitch)](https://docs.openshift.com/container-platform/latest/architecture/additional_concepts/sdn.html)により作成された、外部ホストと通信するためのネットワークアドレスから割り当てられたものになります。
 
 ## OpenShiftの利用(CUI編)
-### OpenShift環境へのログインとアプリケーション作成
+### OpenShift環境へのログインとアプリケーション作成(CUI編)
 上記GUI編で紹介した手順を、CLIで実行します。まずOpenShift環境にログインして、プロジェクトを作成します。
 ```
 $ sudo yum -y install atomic-openshift-clients ### OpenShiftのCLIツールインストール
@@ -489,7 +484,6 @@ $ oc new-app --name=testphp01 https://github.com/h-kojima/php-hello-world
 --> Success
     Build scheduled, use 'oc logs -f bc/testphp3' to track its progress.
     Run 'oc status' to view your app.
-$
 ```
 作成されたアプリケーションは、OpenShift環境の各Node(Podを実行するサーバ)のコンテナ間通信ネットワークで利用されるIPアドレスを指定してアクセスできます。このIPアドレスは、oc getコマンドで確認できます。
 
@@ -517,13 +511,14 @@ testphp01  testphp01-test1.192.168.199.201.xip.io              testphp01  8080-t
 
 oc exposeコマンドにより自動的に外部からのアクセス用URLが作成され、このURLを利用して外部ホストからアプリケーションにアクセスできるようになります。上記の例では、[xip.io](https://xip.io/)をURLのドメインとして利用することで、`192.168.199.201`にアクセスするようになっています。
 
-### アプリケーションの更改
+## OpenShiftでのアプリケーション更改
 
 OpenShift環境とGitリポジトリがネットワーク通信が可能な場合、Gitリポジトリで管理するソースコードに対して変更がコミットされた場合、自動的にDockerイメージのリビルドとアプリケーションのデプロイを実行するように設定できます。ただし、GitリポジトリからOpenShift環境へのネットワーク通信が不可、ソースコード変更のタイミングで毎回Dockerイメージをリビルドしたくない、といった場合はソースコード変更コミットの後で、手動でDockerイメージのリビルドができます。<br>
 <br>
 リビルドするための方法は、左側の[Builds]メニューから確認できます。
 
 ![モデル図](https://github.com/h-kojima/openshift/blob/master/ocp3u3/images/openshift-deployment-model.png)
+
 GUIの場合はこの画面の[Start Build]をクリックします。CUIの場合は以下のコマンドを実行します。
 
 ```
@@ -531,10 +526,10 @@ $ oc start-build testphp01
 ```
 リビルドを実行すると、Dockerイメージが新しく作成されて新規Podが起動した後に、古いPodが削除されることをGUIで確認できます。
 
-### OpenShiftのPod状態監視
+## OpenShiftの状態監視
 OpenShift環境では各Pod(Pod内のプロセス含む)やNodeの状態監視を行っており、Pod(Pod内のプロセス)やNodeに障害が発生した場合、正常NodeでPodを自動的に再起動します。
 
-### OpenShiftのログ
+## OpenShiftのログ
 アプリケーション作成やデプロイ時などのログについてはGUIから確認できる他に、[oc logsコマンド](https://docs.openshift.com/container-platform/3.4/cli_reference/basic_cli_operations.html#troubleshooting-and-debugging-cli-operations)でも確認できます。OpenShiftではアプリケーションだけでなく、アプリケーション作成やデプロイ専用のPodも作成されるのでこれらのPodに関するログも見ることができます。
 
 ## Revision History
