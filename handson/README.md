@@ -516,7 +516,31 @@ NAME       HOST/PORT                                PATH       SERVICES   PORT  
 testphp01  testphp01-test1.192.168.199.201.xip.io              testphp01  8080-tcp
 ```
 
-oc exposeコマンドにより自動的に外部からのアクセス用URLが作成され、このURLを利用して外部ホストからアプリケーションにアクセスできるようになります。こうしたルーティングを定義することで、対応する設定がOpenShift環境のHAProxyコンテナに自動的に追加され、URLベースのルーティングが実施されるようになります。上記の例では、[xip.io](https://xip.io/)をURLのドメインとして利用することで、`192.168.199.201`にアクセスするようになっています。また、各Nodeのカーネルが持っているパケット転送情報が、OpenShiftにより自動的に修正されます。そうした転送情報は各Nodeでiptablesコマンドを実施して確認できます。
+oc exposeコマンドにより自動的に外部からのアクセス用URLが作成され、このURLを利用して外部ホストからアプリケーションにアクセスできるようになります。こうしたルーティングを定義することで、対応する設定がOpenShift環境のHAProxyコンテナに自動的に追加され、URLベースのルーティングが実施されるようになります。
+
+```
+# oc login -u system:admin ### OpenShift環境の管理者権限でログイン
+# oc get pods -n default
+NAME                       READY     STATUS    RESTARTS   AGE
+docker-registry-2-ez0qq    1/1       Running   0          4h
+registry-console-1-etpcf   1/1       Running   0          4h
+router-1-5qv9k             1/1       Running   0          4h
+# oc rsh router-1-5qv9k
+sh-4.2$ pwd   
+/var/lib/haproxy/conf
+sh-4.2$ ls
+cert_config.map		 os_edge_http_be.map	    os_sni_passthrough.map
+default_pub_keys.pem	 os_edge_http_expose.map    os_tcp_be.map
+error-page-503.http	 os_edge_http_redirect.map  os_wildcard_domain.map
+haproxy-config.template  os_http_be.map
+haproxy.config		 os_reencrypt.map
+sh-4.2$ grep -inr testphp01 *
+haproxy.config:329:backend be_http_test1_testphp01
+os_http_be.map:1:testphp3-test1.192.168.199.202.xip.io test1_testphp01
+sh-4.2$ 
+```
+
+上記の例では、[xip.io](https://xip.io/)をURLのドメインとして利用することで、`192.168.199.201`にアクセスするようになっています。また、各Nodeのカーネルが持っているパケット転送情報が、OpenShiftにより自動的に修正されます。そうした転送情報は各Nodeでiptablesコマンドを実施して確認できます。
 
 ```
 # iptables -t nat -nL
