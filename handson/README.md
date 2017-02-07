@@ -1,3 +1,16 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Docker/OpenShift のハンズオンテキスト](#dockeropenshift-%E3%81%AE%E3%83%8F%E3%83%B3%E3%82%BA%E3%82%AA%E3%83%B3%E3%83%86%E3%82%AD%E3%82%B9%E3%83%88)
+  - [Dockerの利用準備](#docker%E3%81%AE%E5%88%A9%E7%94%A8%E6%BA%96%E5%82%99)
+  - [Dockerの利用](#docker%E3%81%AE%E5%88%A9%E7%94%A8)
+    - [Dockerイメージの検索](#docker%E3%82%A4%E3%83%A1%E3%83%BC%E3%82%B8%E3%81%AE%E6%A4%9C%E7%B4%A2)
+    - [Dockerイメージの取得と起動](#docker%E3%82%A4%E3%83%A1%E3%83%BC%E3%82%B8%E3%81%AE%E5%8F%96%E5%BE%97%E3%81%A8%E8%B5%B7%E5%8B%95)
+    - [コンテナ内でのアプリケーションインストールと起動](#%E3%82%B3%E3%83%B3%E3%83%86%E3%83%8A%E5%86%85%E3%81%A7%E3%81%AE%E3%82%A2%E3%83%97%E3%83%AA%E3%82%B1%E3%83%BC%E3%82%B7%E3%83%A7%E3%83%B3%E3%82%A4%E3%83%B3%E3%82%B9%E3%83%88%E3%83%BC%E3%83%AB%E3%81%A8%E8%B5%B7%E5%8B%95)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # Docker/OpenShift のハンズオンテキスト
 1台の物理マシンまたは仮想マシンを利用して、Docker及びDockerのプライベートリポジトリの利用手順をご紹介します。[Red Hatが公式に配布しているRHEL7のDockerイメージ](https://access.redhat.com/containers/#/repo/57ea8cee9c624c035f96f3af/image/docker)を利用して、簡単なWebサーバをデプロイします。さらに、同様のことをOpenShiftで実施するとどうなるかをご確認いただくことで、OpenShiftでのアプリケーション作成及びデプロイを体感していただきます。
 
