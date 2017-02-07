@@ -377,7 +377,58 @@ Dockerのログについては、Dockerサービスで設定するロギング�
 ## OpenShiftの利用準備
 Step1. OpenShift環境をインストールする最新版のRHEL7マシン(物理でも仮想でも可)を1台用意します。
 
-Step2. 
+Step2. OpenShift環境をインストールするためのリポジトリ利用を有効にし、SSH鍵の作成及びローカルホストへのコピーを実行します。
+```
+# subscription-manager register --auto-attach
+# subscription-manager repos --disable="*"
+# subscription-manager repos --enable=rhel-7-server-rpms --enable=rhel-7-server-extras-rpms --enable=rhel-7-server-ose-3.4-rpms
+#
+# ssh-keygen -f /root/.ssh/id_rsa -N ''
+# ssh-copy-id root@OPENSHIFT_HOST_FQDN
+```
+Step3. OpenShiftのインストールにはAnsibleのPlaybookを活用します。Playbook実行用のInventoryファイルを作成し、OpenShift用に用意されたPlaybookを実行します。
+```
+# cat /root/sample-single-hosts
+
+# Create an OSEv3 group that contains the master, nodes, etcd, and lb groups.
+# The lb group lets Ansible configure HAProxy as the load balancing solution.
+# Comment lb out if your load balancer is pre-configured.
+[OSEv3:children]
+masters
+nodes
+
+# Set variables common for all OSEv3 hosts
+[OSEv3:vars]
+ansible_ssh_user=root
+deployment_type=openshift-enterprise
+
+# Uncomment the following to enable htpasswd authentication; defaults to DenyAllPasswordIdentityProvider.
+openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/or
+igin/master/htpasswd'}]
+
+# default subdomain to use for exposed routes
+openshift_master_default_subdomain=OPENSHIFT_HOST_IP_ADDRESS.xip.io
+
+[masters]
+OPENSHIFT_HOST_FQDN
+
+[nodes]
+OPENSHIFT_HOST_FQDN openshift_node_labels="{'region': 'infra'}" openshift_schedulable=true
+
+#
+# yum -y install atomic-openshift-utils
+# ansible-playbook -i /root/sample-single-hosts /usr/share/ansible/openshift-ansible/playbooks/byo/config.yml
+```
+Step4. HTPasswd認証用のファイルを作成して、OpenShiftの設定ファイルとしてコピーします。
+```
+# yum -y install httpd-tools
+# htpasswd -c /root/htpasswd USERNAME
+# cp /root/htpasswd /etc/origin/master/
+```
+
+Step5. `https://OPENSHIFT_HOST_FQDN:8443` にアクセスするとOpenShiftのログイン画面が表示されるので、 Step4.で作成したユーザ情報を利用してログインし、OpenShift環境を利用できるようになります。
+
+## OpenShiftの利用
 
 ## Revision History
 
