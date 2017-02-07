@@ -1,96 +1,354 @@
-# Multiple Masters/Multiple NodesのOpenShift環境
+# Docker/OpenShift のハンズオンテキスト
+1台の物理マシンまたは仮想マシンを利用して、Docker及びDockerのプライベートリポジトリの利用手順をご紹介します。[Red Hatが公式に配布しているRHEL7のDockerイメージ](https://access.redhat.com/containers/#/repo/57ea8cee9c624c035f96f3af/image/docker)を利用して、簡単なWebサーバをデプロイします。さらに、同様のことをOpenShiftで実施するとどうなるかをご確認いただくことで、OpenShiftでのアプリケーション作成及びデプロイを体感していただきます。
 
-次のようなモデル図に沿った環境の構築手順イメージを記載します。  
-作成した環境のメンテナンス(Nodeの追加など)については、[こちら](https://github.com/h-kojima/openshift/blob/master/ocp3u3/maintenance.md)に記載します。  
-コマンドチートシートや各種ハンズオン資料は[こちら](https://github.com/nekop/openshift-sandbox/tree/master/docs)や[こちら](https://github.com/akubicharm/OpenShiftv3HandsOn/)をご参照ください。
+## Dockerの利用準備
+Step1. Docker環境をインストールする最新版のRHEL7マシン(物理でも仮想でも可)を1台用意します。
 
-![モデル図](https://github.com/h-kojima/openshift/blob/master/ocp3u3/images/openshift-deployment-model.png)
-
-## version3.3の構築手順イメージ
-
-Step1. OpenShiftをインストールする最新版のRHEL7サーバ(物理でも仮想でも可)を用意します。
-LB x1台、Master x3台、Infra Node x2台、Node x2台の計8台を用意します。
-Master/Nodeの推奨スペックは[こちら](https://access.redhat.com/documentation/en/openshift-container-platform/3.3/single/installation-and-configuration/#install-config-install-prerequisites)をご参照下さい。
-LBのスペックはRHEL7のシステム要件(1コア, 2GBメモリー, ディスク容量20GB程度)を満たせば、最低限動作するはずです。  
-  
-また、[DNS/Firewall/Proxyといった環境面を整備](https://access.redhat.com/documentation/en/openshift-container-platform/3.3/single/installation-and-configuration/#envirornment-requirements)するのと同時に、OpenShiftのインストール時には[Red HatのCDN](https://access.redhat.com/ja/node/321223)からRPMパッケージを、[registry.access.redhat.comからDockerイメージを取得](https://access.redhat.com/ja/node/1365643)できるようにする必要があります。  
-
-Step2. OpenShiftをインストールするサーバ全台で、[OpenShiftのリポジトリ利用を有効](https://access.redhat.com/documentation/en/openshift-container-platform/3.3/single/installation-and-configuration/#host-registration)にします。
-
-Step3. Master/Infra Node/Nodeの全台で、Dockerサービスを起動します。本番環境を想定する場合、Dockerのイメージ領域として未使用のディスク領域が必要となります。以下の「sdb」はシステム毎に、「vdb」や「nvme1n1」などに置き換えて下さい。
-
+Step2. Docker及びDockerのプライベートリポジトリに関連したアプリケーションをインストールして起動します。下記コマンドでは、プライベートリポジトリを利用するためのDockerの設定ファイルや、ポート番号(TCP5000番)の開放も合わせて実施しています。
 ```
-# yum -y install docker
-# echo "INSECURE_REGISTRY='--insecure-registry 172.30.0.0/16'" >> /etc/sysconfig/docker
-# cat <<EOF >> /etc/sysconfig/docker-storage-setup
-DEVS=/dev/sdb
-VG=docker-vg
-EOF
-# docker-storage-setup
-# systemctl start docker; systemctl enable docker
+# subscription-manager register --auto-attach
+# subscription-manager repos --disable="*"
+# subscription-manager repos --enable=rhel-7-server-rpms --enable=rhel-7-server-extras-rpms
+# yum -y install docker docker-distribution
+#
+# echo "INSECURE_REGISTRY='--insecure-registry localhost:5000'" >> /etc/sysconfig/docker
+# firewall-cmd --zone=public --add-port=5000/tcp
+# firewall-cmd --zone=public --add-port=5000/tcp --permanent
+#
+# systemctl start docker; systemctl start docker-distribution
+# systemctl enable docker; systemctl enable docker-distribution
 ```
 
-Step4. OpenShiftインストール用に用意されたAnsibleインベントリファイルを[こちら](https://github.com/h-kojima/openshift/blob/master/ocp3u3/ansible/sample-ansible-hosts)からダウンロードします。この時、Docker Registryの共有ストレージとして利用するNFSや、ホスト名、アプリケーションのドメイン名などは適宜修正して下さい。インベントリファイルで指定しているDNSワイルドカードについては、[こちらのファイル](https://github.com/h-kojima/openshift/blob/master/ocp3u3/bind-chroot)を参考に設定して下さい。
+## Dockerの利用
 
-Step5. 適当なサーバで作成したSSH公開鍵を、OpenShiftをインストールするサーバ全台に配布します。
+### Dockerイメージの検索
+
+docker search コマンドでパブリックなDockerリポジトリから利用出来るDockerイメージの一覧が出力出来ることを確認します。
+```
+# docker search rhel
+... (中略) ...
+docker.io    docker.io/dockerdev/rhel
+redhat.com   registry.access.redhat.com/rhel7
+... (中略) ...
+```
+なお、docker searchで検索可能なDockerイメージの全リストを出力するには、python, rubyパッケージをインストールし、curlコマンドと組み合わせて実行します。
+```
+# yum -y install python ruby
+# curl -s https://registry.access.redhat.com/v1/search?q="*" | python -mjson.tool|ruby -ryaml -rjson -e 'puts YAML.dump(JSON.parse(STDIN.read))'|grep "name:" |less
+  name: registry-haproxyorg.rhcloud.com/haproxy/rhel-haproxy:1.5.12
+  name: registry-crunchydata.rhcloud.com/crunchydata/crunchy-postgresql:9.4.4
+... (中略) ...
+```
+プライベートリポジトリのDockerイメージの一覧を出力する際には、docker-distributionサービスが起動しているサーバに問い合わせをする必要があります。2017年2月現在、docker searchコマンドにdocker-distributionサービスが対応していないので、curlコマンドでDockerイメージの一覧を確認します。
 
 ```
-# ssh-keygen -f /root/.ssh/id_rsa -N ''
-# ssh-copy-id root@$OPENSHIFT_INSTALL_SERVER
+# curl http://localhost:5000/v2/_catalog
+{"repositories":["CUSTOM_DOCKER_IMAGE_NAME"]}
+#
 ```
 
-Step6. Step5.のssh-keygenを実行したサーバで、OpenShiftインストール用に用意されたPlaybookを実行します。
+### Dockerイメージの取得と起動
+Red Hatの公式リポジトリからRHEL7のDockerイメージをPULLします。
 
 ```
-# yum -y install atomic-openshift-utils
-# ansible-playbook -i /root/sample-ansible-hosts /usr/share/ansible/openshift-ansible/playbooks/byo/config.yml
+# docker pull rhel7
+Using default tag: latest
+Trying to pull repository registry.access.redhat.com/rhel7 ... 
+latest: Pulling from registry.access.redhat.com/rhel7
+7bd78273b666: Pull complete 
+c196631bd9ac: Pull complete 
+Digest: sha256:0614d58c96e8d1a04a252880a6c33b48b4685cafae048a70dd9e821edf62cab9
+#
 ```
-
-Step7. HTPasswd認証用のファイルを作成して、Master全台に配布します。
-
+RHEL7のDockerイメージを取得できたことを確認します。
 ```
-# yum -y install httpd-tools
-# htpasswd -c /root/htpasswd $USERNAME1
-# scp /root/htpasswd root@$OPENSHIFT_MASTER_SERVER:/etc/origin/master/
+# docker images
+REPOSITORY                         TAG                 IMAGE ID            CREATED             SIZE
+registry.access.redhat.com/rhel7   latest              e4b79d4d89ab        3 weeks ago         192.5 MB
+#
 ```
-Step8. Infra NodeへのアプリケーションPodの配置を無効化します。次のコマンドを任意のMasterサーバ上で実行します。
-
+このイメージをベースとしたコンテナを「test1」という名前で起動してみます。`/bin/bash`を指定してコンテナに対する標準入出力を有効にしておきます。また、起動中のコンテナから抜けるには、`Ctrl-p + Ctrl-q` を入力します。
 ```
-# oc login -u system:admin
-# oc adm manage-node $INFRA_NODE1 $INFRA_NODE2 --schedulable=false
+# docker run -it --name=test1 rhel7 /bin/bash
+[root@fbcf771e295c /]# cat /etc/hostname 
+fbcf771e295c
+[root@fbcf771e295c /]# [root@localhost ~]#
 ```
-
-Step9. https://LB_SERVER_FQDN:8443 にアクセスするとOpenShiftのログイン画面が表示されるので、
-Step7.で作成したユーザ情報を利用してログインし、OpenShift環境を利用できるようになります。
-
-なお、アプリケーションへのルーティングには、デフォルトのRouter(HAProxy) Pod以外にもF5のルータを利用することもできます。その場合、Router Podの起動が必要なくなるので、Infra Nodeを構築する必要がなくなります。F5ルータの利用手順の詳細は[こちら](https://access.redhat.com/documentation/en/openshift-container-platform/3.3/single/installation-and-configuration/#install-config-router-f5)をご参照下さい。
-
-### Extra Step
-
-Step10. ここまでの手順だとLBが1台構成でSPOFになります。そこで、KeepAlivedでHAProxyサービスを簡易的に冗長化します。まず、新しいLBとなるRHEL7サーバを2台(Master1台、Backup1台の計2台構成)用意し、必要なパッケージをインストールします。
+抜けた後に、docker psコマンドで現在起動中のコンテナ一覧を確認します。
 
 ```
-# yum -y install keepalived haproxy iptables-services
+# docker ps
+CONTAINER ID        IMAGE                              COMMAND             CREATED             STATUS              PORTS               NAMES
+fbcf771e295c        rhel7                              "/bin/bash"         2 minutes ago       Up 2 minutes                            test1
+# 
 ```
-Step11. 既存のLBのhaproxy/iptablesサービスの設定ファイルを、新しいLB全台にコピーします。
+再びコンテナに入るには、docker attachコマンドを実施します。
 
 ```
-# scp /etc/haproxy/haproxy.cfg root@$OPENSHIFT_NEW_LB_SERVER:/etc/haproxy/
-# scp /etc/sysconfig/iptables root@$OPENSHIFT_NEW_LB_SERVER:/etc/sysconfig/
+# docker attach test1
+[root@fbcf771e295c /]#
 ```
-Step12. [こちら](https://github.com/h-kojima/openshift/blob/master/ocp3u3/keepalived/keepalived.conf)からダウンロードしたkeepalived.confを、新しいLBの/etc/keepalived/に保存します。この時、設定ファイルのコメントを参考にして、「state, priority, unicast_peer, virtual_ipaddress」の4項目を適宜修正して下さい。
 
-Step13. 既存LBの電源を落とします。そして、新しいLB全台で各サービスを起動・有効化します。この時、iptablesサービスを起動しますので、firewalldサービスを停止しておきます。
+### コンテナ内でのアプリケーションインストールと起動
+コンテナ内でyumを使ってWebサーバ(httpdパッケージ)とPHPをインストールします。
+
+````
+[root@fbcf771e295c /]# yum -y install httpd php
+... (中略) ...
+Installed:
+  httpd.x86_64 0:2.4.6-45.el7 php.x86_64 0:5.4.16-42.el7                                                           
+... (中略) ...
+Complete!
+[root@fbcf771e295c /]# 
+```
+[ローカルのyumリポジトリを利用](https://access.redhat.com/documentation/ja-JP/Red_Hat_Enterprise_Linux/7/html/System_Administrators_Guide/sec-Configuring_Yum_and_Yum_Repositories.html#sec-Yum_Repository)している場合は、docker cpコマンドを利用して、コンテナにyumのプライベートリポジトリを利用するための設定ファイルをコピーする必要があります。
 
 ```
-# systemctl stop firewalld; systemctl disable firewalld
-# systemctl start haproxy; systemctl start keepalived; systemctl start iptables
-# systemctl enable haproxy; systemctl enable keepalived; systemctl enable iptables
+# docker cp /etc/yum.repos.d/local.repo test1:/etc/yum.repos.d/
+[root@fbcf771e295c /]# cat /etc/yum.repos.d/local.repo
+[local]
+name=local-repo
+baseurl=http://localhost/public/packages/
+gpgcheck=0
+enabled=1
+[root@fbcf771e295c /]#
 ```
-Step14. MasterとなるLBで、ipコマンドなどで仮想IPアドレスが割り当てられていることを確認できます。また、このkeepalivedの設定ではHAProxyのプロセスが起動しているかどうかを見ているため、「# systemctl stop haproxy」などでHAProxyを停止すると、BackupとなるLBに仮想IPアドレスが引き継がれることを確認できます。
+コンテナ内でテスト用のPHPファイルを配置してhttpdプログラムを実行し、Webサービスを起動します。
+
+```
+[root@fbcf771e295c /]# mkdir /var/www/html/public
+[root@fbcf771e295c /]# cat /var/www/html/public/test.php (# viエディタなどでファイルを作成して下さい)
+<html>
+<body>
+<div style="width: 100%; font-size: 40px; font-weight: bold; text-align: left;">
+<?php
+echo "Hello Docker 2017-02-01";
+echo "<br>";
+echo "<br>";
+echo "Host Name: ";
+echo gethostname();
+echo "<br>";
+echo "Host IP: ";
+echo $_SERVER["SERVER_ADDR"];
+echo "<br>";
+echo "Client IP: ";
+echo $_SERVER["REMOTE_ADDR"];
+?>
+</div>
+</body>
+</html>
+[root@fbcf771e295c /]#
+[root@fbcf771e295c /]# /usr/sbin/httpd -DFOREGROUND
+AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using 172.17.0.2. Set the 'ServerName' directive globally to suppress this message
+```
+
+端末の別タブまたはFirefoxから、コンテナのIPアドレスにアクセスてWebサービスが起動し、コンテナのホスト名`fbcf771e295c`/コンテナのIPアドレス`172.17.0.2`/アクセス元のホストのIPアドレス`172.17.0.1`を確認します。コンテナには、Dockerサービスが起動された際に自動的に作成される仮想ネットワークアドレス`172.17.0.0/16`から、空いているIPアドレスが順番に割り当てられていきます。
+```
+$ curl http://172.17.0.2/public/test.php
+<html>
+<body>
+<div style="width: 100%; font-size: 40px; font-weight: bold; text-align: left;">
+Hello OpenShift 2017-01-20<br><br>Host Name: fbcf771e295c<br>Host IP: 172.17.0.2<br>Client IP: 172.17.0.1</div>
+</body>
+</html>
+$ 
+```
+
+### コンテナの変更保存
+コンテナから抜けた後に、これまで加えてきた変更をベースとなるDockerイメージにコミットして、新しいDockerイメージとして保存します。
+
+```
+[root@fbcf771e295c /]# /usr/sbin/httpd -DFOREGROUND
+AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using 172.17.0.2. Set the 'ServerName' directive globally to suppress this message
+
+^C[root@fbcf771e295c /]# [root@localhost ~]# 
+# docker commit test1 myrhel7_httpd01
+sha256:04ec21f714818636aaf8afd4f9cff33c775fb9902279756d8b361041824f2b29
+# docker images
+REPOSITORY                         TAG                 IMAGE ID            CREATED             SIZE
+myrhel7_httpd01                    latest              04ec21f71481        14 seconds ago      265.3 MB
+registry.access.redhat.com/rhel7   latest              e4b79d4d89ab        3 weeks ago         192.5 MB
+# 
+```
+
+これで、myrhel7_httpd01という名前のDockerイメージが新しく保存されました。このmyrhel7_httpd01からtest2という名前のコンテナを起動し、Webサービスを起動してみます。
+
+```
+# docker run -it --name=test2 myrhel7_httpd01 /bin/bash
+[root@53de6ea3c782 /]# 
+[root@53de6ea3c782 /]# /usr/sbin/httpd -DFOREGROUND
+AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using 172.17.0.3. Set the 'ServerName' directive globally to suppress this message
+```
+
+再び、Firefoxなどから`http://172.17.0.3/public/test.php`にアクセスして、コンテナ内のWebサービスが起動していることを確認します。
+
+### DockerfileによるカスタムDockerイメージの作成
+こうしたコンテナの変更及びWebサービスなどの自動起動を有効化した、Dockerイメージを作成するための手順をDockerfileというテキストファイルに記載できます。まずはDockerfileで扱うホスト上のファイルを、特定のディレクトリ(Dockerfileファイルが保存されている場所)にコピー及び作成して、Dockerfileを作成します。
+```
+# mkdir buiddir
+# cp /etc/yum.repos.d/local.repo /root/builddir/
+# cat builddir/run-apache.sh
+
+#!/bin/bash
+
+rm -rf /run/httpd/*
+exec /usr/sbin/httpd -D FOREGROUND
+
+# cat builddir/test.php
+<html>
+<body>
+<div style="width: 100%; font-size: 40px; font-weight: bold; text-align: left;">
+<?php
+echo "Hello OpenShift 2017-02-01";
+echo "<br>";
+echo "<br>";
+echo "Host Name: ";
+echo gethostname();
+echo "<br>";
+echo "Host IP: ";
+echo $_SERVER["SERVER_ADDR"];
+echo "<br>";
+echo "Client IP: ";
+echo $_SERVER["REMOTE_ADDR"];
+?>
+</div>
+</body>
+</html>
+#
+# ls builddir/
+local.repo
+#
+# cat builddir/Dockerfile
+
+# My Docker Image
+# Version 0.1
+
+FROM rhel7 ### カスタマイズするベースイメージを指定
+MAINTAINER Hirofumi Kojima
+
+ADD local.repo /etc/yum.repos.d/local.repo  ### ホストの/root/builddir/local.repoファイルをコンテナの/etc/yum.repos.d/に追加
+RUN yum -y install httpd php  ### コンテナ内でのコマンド実行
+RUN yum clean all
+ADD test.php /var/www/html/test.php
+RUN echo "Apache is running." > /var/www/html/index.html
+
+EXPOSE 80  ### コンテナでの開放するポート番号を指定
+ADD run-apache.sh /root/run-apache.sh
+RUN chmod +x /root/run-apache.sh
+
+CMD ["/root/run-apache.sh"] ### コンテナ実行時に起動するコマンド(/root/run-apache.shを実行)
+# 
+```
+
+そして、docker buildコマンドで、myrhel7_httpd02という名前のDockerイメージを作成します。
+
+```
+# docker build -t myrhel7_httpd02 /root/builddir
+Sending build context to Docker daemon  5.12 kB
+Step 1 : FROM rhel7
+ ---> e4b79d4d89ab
+Step 2 : MAINTAINER Hirofumi Kojima
+ ---> Using cache
+ ---> 6f5863cb74dc
+Step 3 : ADD guest.repo /etc/yum.repos.d/local.repo
+ ---> Using cache
+ ---> efea24e18b40
+Step 4 : RUN yum -y install httpd php
+ ---> Using cache
+ ---> 0bed9b113bb1
+Step 5 : RUN yum clean all
+ ---> Using cache
+ ---> 98c409997e7f
+Step 6 : ADD test.php /var/www/html/test.php
+ ---> d0f7a2895813
+Removing intermediate container 372e4f9afba0
+Step 7 : RUN echo "Apache is running." > /var/www/html/index.html
+ ---> Running in ff708fa4c3e5
+ ---> 6310c2a3df77
+Removing intermediate container ff708fa4c3e5
+Step 8 : EXPOSE 80
+ ---> Running in 54256caa3d4c
+ ---> fca39981080e
+Removing intermediate container 54256caa3d4c
+Step 9 : ADD run-apache.sh /root/run-apache.sh
+ ---> 23b86b832c05
+Removing intermediate container 091ac94807d2
+Step 10 : RUN chmod +x /root/run-apache.sh
+ ---> Running in c7af82fa1ff2
+ ---> d766694a6f1a
+Removing intermediate container c7af82fa1ff2
+Step 11 : CMD /root/run-apache.sh
+ ---> Running in d280a1344047
+ ---> f8370c6e0f52
+Removing intermediate container d280a1344047
+Successfully built f8370c6e0f52
+#
+# docker images
+REPOSITORY                         TAG                 IMAGE ID            CREATED             SIZE
+myrhel7_httpd02                    latest              f8370c6e0f52        5 seconds ago       267 MB
+myrhel7_httpd01                    latest              04ec21f71481        16 minutes ago      265.3 MB
+registry.access.redhat.com/rhel7   latest              e4b79d4d89ab        3 weeks ago         192.5 MB
+#
+```
+
+作成したmyrhel7_httpd02から、コンテナを実行します。`-p 8080:80`で、ホストの8080番ポートにアクセスすると、コンテナの80番ポートにアクセスするようなポートフォワーディングの設定を行います。`-d`を指定することで、バックグラウンドでのコンテナ起動を行います。
+
+```
+# docker run -p 8080:80 -d --name=test3 myrhel7_httpd02
+419a59e32b32ab138b031f55b7831c4159447a389bf52e1da3896992e6df1446
+# docker ps
+CONTAINER ID        IMAGE                              COMMAND                 CREATED             STATUS              PORTS                  NAMES
+419a59e32b32        myrhel7_httpd02                    "/root/run-apache.sh"   4 seconds ago       Up 1 seconds        0.0.0.0:8080->80/tcp   test3
+53de6ea3c782        myrhel7_httpd01                    "/bin/bash"             14 minutes ago      Up 14 minutes                              test2
+fbcf771e295c        rhel7                              "/bin/bash"             46 minutes ago      Up 46 minutes                              test1
+# curl http://localhost:8080
+Apache is running.
+# curl http://localhost:8080/test.php
+<html>
+<body>
+<div style="width: 100%; font-size: 40px; font-weight: bold; text-align: left;">
+Hello OpenShift 2017-01-20<br><br>Host Name: 419a59e32b32<br>Host IP: 172.17.0.4<br>Client IP: 172.17.0.1</div>
+</body>
+</html>
+#
+```
+
+### プライベートリポジトリへのDockerイメージの保存
+
+作ったDockerイメージをDockerのプライベートリポジトリにPUSHします。DockerイメージのPUSHには、ローカルのDockerイメージに、「このDockerイメージは、あのプライベートリポジトリに存在します」というタグを付けて、そのタグが付けられたDockerイメージをPUSHします。
+
+```
+# docker tag myrhel7_httpd02 localhost:5000/myrhel7_ver01
+[root@rhel-gw ~]# docker images
+REPOSITORY                               TAG                 IMAGE ID            CREATED             SIZE
+myrhel7_httpd02                          latest              f8370c6e0f52        9 minutes ago       267 MB
+localhost:5000/myrhel7_ver02             latest              f8370c6e0f52        9 minutes ago       267 MB
+myrhel7_httpd01                          latest              04ec21f71481        26 minutes ago      265.3 MB
+registry.access.redhat.com/rhel7         latest              e4b79d4d89ab        3 weeks ago         192.5 MB
+# docker push localhost:5000/myrhel7_ver01
+The push refers to a repository [localhost:5000/myrhel7_ver01]
+ca2837254b63: Pushed 
+5e774d72e558: Pushed 
+aec628fdc617: Pushed 
+d282d15d462d: Pushed 
+5a3f8f3594d7: Pushed 
+27c780537ee3: Pushed 
+c002924c33dd: Pushed 
+0a081b45cb84: Mounted from rhel7 
+df9d2808b9a9: Mounted from rhel7 
+latest: digest: sha256:c0377175ad942ff605a405ee99744c72d851bd50ea78f87a2b15208d503edda9 size: 2194
+#
+# curl http://localhost:5000/v2/_catalog
+{"repositories":["myrhel7_ver01"]}
+#
+```
+
+### Dockerのログ
+
+Dockerのログについては、Dockerサービスで設定するロギング・ドライバ(デフォルトはjournald)と、各コンテナ実行時に指定するロギング・ドライバ(デフォルトはDockerサービスで指定しているロギング・ドライバ)を利用して出力できます。ロギング・ドライバについては、syslog/journald/fluentd/awslogsなどを利用できます。詳細は[こちら](https://docs.docker.com/engine/admin/logging/overview/)をご参照ください。
+
 
 ## Revision History
 
-2016-12-05 環境メンテナンスのリンクを追加  
-2016-11-19 初版リリース
+2017-02-07 初版リリース
 
