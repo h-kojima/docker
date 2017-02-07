@@ -446,7 +446,17 @@ Step3. [Continue to overview]をクリックすると、以下のような画面
 
 ![Overview](https://github.com/h-kojima/docker/blob/master/handson/images/openshift-01.png)
 
-Step4. 作成したアプリケーション名の右横にあるURLをクリックするとコンテナ内でPHPが実施され、Podのホスト名/PodのIPアドレス/Podへのアクセス元のIPアドレスが確認できます。このPodのIPアドレスは、OpenShift環境内で利用される[SDN(OpenvSwitch)](https://docs.openshift.com/container-platform/latest/architecture/additional_concepts/sdn.html)により作成された、外部ホストと通信するためのネットワークアドレスから割り当てられたものになります。
+Step4. 作成したアプリケーション名の右横にあるURLをクリックするとコンテナ内でPHPが実施され、Podのホスト名/PodのIPアドレス/Podへのアクセス元のIPアドレスが確認できます。
+
+```
+Hello Docker 2017-02-07
+
+Host Name: testphp01-1-nwhpg
+Host IP: 10.128.0.21
+Client IP: 10.128.0.1
+```
+
+このPodのIPアドレスは、OpenShift環境内で利用される[SDN(OpenvSwitch)](https://docs.openshift.com/container-platform/latest/architecture/additional_concepts/sdn.html)により作成された、外部ホストと通信するためのネットワークアドレスから割り当てられたものになります。
 
 ## OpenShiftの利用(CUI編)
 ### OpenShift環境へのログインとアプリケーション作成(CUI編)
