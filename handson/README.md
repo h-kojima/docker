@@ -510,7 +510,7 @@ $ oc get service
 NAME              CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
 testphp01         172.30.135.78    <none>        8080/TCP   1h
 $ curl http://172.30.135.78:8080
-Hello Docker 2017-02-03<br><br>Host Name: testphp01-1-c3i0y<br>Host IP: 10.128.0.15<br>Client IP: 10.128.0.1
+Hello OpenShift 2017-02-01<br><br>Host Name: testphp01-1-e1vjn<br>Host IP: 10.128.0.15<br>Client IP: 10.128.0.1
 ```
 
 ただし、このネットワーク`172.30.0.0/16`のアクセスは各Nodeでしか利用できませんので、このままだと作成したアプリケーションは外部ホストからアクセスできません。そこで、oc exposeコマンドを実行して、各Nodeでのみ利用できるサービスアクセス用のIPアドレスへの経路情報を追加します。
@@ -564,7 +564,7 @@ OpenShift環境とGitリポジトリがネットワーク通信が可能な場�
 GUIの場合はこの画面の[Start Build]をクリックします。CUIの場合は以下のコマンドを実行します。
 
 ```
-$ oc start-build testphp01
+$ oc start-build testphp -n PROJECT_NAME
 ```
 リビルドを実行すると、Dockerイメージが新しく作成されて新規Podが起動した後に、古いPodが削除されることをGUIで確認できます。
 
