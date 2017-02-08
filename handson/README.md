@@ -22,6 +22,7 @@
     - [OpenShiftでのアプリケーション削除](#openshiftでのアプリケーション削除)
     - [OpenShiftの状態監視](#openshiftの状態監視)
     - [OpenShiftのログ](#openshiftのログ)
+    - [OpenShiftの各種コマンド](#openshiftの各種コマンド)
   - [Revision History](#revision-history)
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -580,12 +581,21 @@ $ oc delete all --all -n PROJECT_NAME
 ```
 $ oc delete PROJECT_NAME
 ```
+なお、アプリケーション作成時に`-l LABEL_NAME`オプションを指定することで、アプリケーション削除の際に特定のアプリケーションのみ削除することもできます。
+
+```
+$ oc new-app ...(中略)... -l LABEL_NAME -n PROJECT_NAME  ### アプリケーションと関連設定に特定のラベルを付ける
+$ oc delete all -l LABEL_NAME -n PROJECT_NAME  ### 特定のラベルが付いたアプリケーションと関連設定を一括削除
+```
 
 ### OpenShiftの状態監視
 OpenShift環境では各Pod(Pod内のプロセス含む)やNodeの状態監視を行っており、Pod(Pod内のプロセス)やNodeに障害が発生した場合、正常NodeでPodを自動的に再起動します。
 
 ### OpenShiftのログ
 アプリケーション作成やデプロイ時などのログについてはGUIから確認できる他に、[oc logsコマンド](https://docs.openshift.com/container-platform/latest/cli_reference/basic_cli_operations.html#troubleshooting-and-debugging-cli-operations)でも確認できます。OpenShiftではアプリケーションだけでなく、アプリケーション作成やデプロイ専用のPodも作成されるのでこれらのPodに関するログも見ることができます。
+
+### OpenShiftの各種コマンド
+アプリケーションの作成・削除や、アプリケーションへのログインなどのコマンド一覧は[こちら](https://docs.openshift.com/container-platform/latest/cli_reference/basic_cli_operations.html)をご参照ください。
 
 ## Revision History
 
