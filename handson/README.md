@@ -19,6 +19,7 @@
     - [OpenShift環境へのログインとアプリケーション作成(GUI編)](#openshift環境へのログインとアプリケーション作成gui編)
     - [OpenShift環境へのログインとアプリケーション作成(CUI編)](#openshift環境へのログインとアプリケーション作成cui編)
     - [OpenShiftでのアプリケーション更改](#openshiftでのアプリケーション更改)
+    - [OpenShiftでのアプリケーション削除](#openshiftでのアプリケーション削除)
     - [OpenShiftの状態監視](#openshiftの状態監視)
     - [OpenShiftのログ](#openshiftのログ)
   - [Revision History](#revision-history)
@@ -567,6 +568,18 @@ GUIの場合はこの画面の[Start Build]をクリックします。CUIの場�
 $ oc start-build testphp -n PROJECT_NAME
 ```
 リビルドを実行すると、Dockerイメージが新しく作成されて新規Podが起動した後に、古いPodが削除されることをGUIで確認できます。
+
+### OpenShiftでのアプリケーション削除
+プロジェクト内のアプリケーションや関連する設定などを一括削除する場合は、oc deleteコマンドを実行します。
+
+```
+$ oc delete all --all -n PROJECT_NAME
+```
+プロジェクトもまとめて消去する場合は、oc delete PROJECTコマンドを実行します。
+
+```
+$ oc delete PROJECT_NAME
+```
 
 ### OpenShiftの状態監視
 OpenShift環境では各Pod(Pod内のプロセス含む)やNodeの状態監視を行っており、Pod(Pod内のプロセス)やNodeに障害が発生した場合、正常NodeでPodを自動的に再起動します。
