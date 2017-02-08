@@ -172,11 +172,18 @@ $ curl http://172.17.0.2/public/test.php
 <html>
 <body>
 <div style="width: 100%; font-size: 40px; font-weight: bold; text-align: left;">
-Hello OpenShift 2017-01-20<br><br>Host Name: fbcf771e295c<br>Host IP: 172.17.0.2<br>Client IP: 172.17.0.1</div>
+Hello Docker 2017-02-01<br><br>Host Name: fbcf771e295c<br>Host IP: 172.17.0.2<br>Client IP: 172.17.0.1</div>
 </body>
 </html>
 ```
 
+```
+Hello Docker 2017-02-01
+
+Host Name: fbcf771e295c
+Host IP: 172.17.0.2
+Client IP: 172.17.0.1
+```
 
 ### コンテナの変更保存
 コンテナから抜けた後に、これまで加えてきた変更をベースとなるDockerイメージにコミットして、新しいDockerイメージとして保存します。
@@ -222,7 +229,7 @@ exec /usr/sbin/httpd -D FOREGROUND
 <body>
 <div style="width: 100%; font-size: 40px; font-weight: bold; text-align: left;">
 <?php
-echo "Hello OpenShift 2017-02-01";
+echo "Hello Docker 2017-02-01";
 echo "<br>";
 echo "<br>";
 echo "Host Name: ";
@@ -328,7 +335,7 @@ Apache is running.
 <html>
 <body>
 <div style="width: 100%; font-size: 40px; font-weight: bold; text-align: left;">
-Hello OpenShift 2017-01-20<br><br>Host Name: 419a59e32b32<br>Host IP: 172.17.0.4<br>Client IP: 172.17.0.1</div>
+Hello Docker 2017-02-01<br><br>Host Name: 419a59e32b32<br>Host IP: 172.17.0.4<br>Client IP: 172.17.0.1</div>
 </body>
 </html>
 ```
@@ -447,7 +454,7 @@ Step3. [Continue to overview]をクリックすると、以下のような画面
 Step4. 作成したアプリケーション名の右横にあるURLをクリックするとコンテナ内でPHPが実施され、Podのホスト名/PodのIPアドレス/Podへのアクセス元のIPアドレスが確認できます。
 
 ```
-Hello Docker 2017-02-07
+Hello OpenShift 2017-02-01
 
 Host Name: testphp01-1-nwhpg
 Host IP: 10.128.0.21
