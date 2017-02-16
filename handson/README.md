@@ -17,7 +17,7 @@
   - [OpenShiftの利用準備](#openshiftの利用準備)
   - [OpenShiftの利用](#openshiftの利用)
     - [OpenShift環境へのログインとアプリケーション作成(GUI編)](#openshift環境へのログインとアプリケーション作成gui編)
-    - [OpenShift環境へのログインとアプリケーション作成(CUI編)](#openshift環境へのログインとアプリケーション作成cui編)
+    - [OpenShift環境へのログインとアプリケーション作成(CLI編)](#openshift環境へのログインとアプリケーション作成cli編)
     - [OpenShiftでのアプリケーション更改](#openshiftでのアプリケーション更改)
     - [OpenShiftでのアプリケーション削除](#openshiftでのアプリケーション削除)
     - [OpenShiftの状態監視](#openshiftの状態監視)
@@ -465,7 +465,7 @@ Client IP: 10.128.0.1
 
 このPodのIPアドレスは、OpenShift環境内で利用される[SDN(OpenvSwitch)](https://docs.openshift.com/container-platform/latest/architecture/additional_concepts/sdn.html)により作成された、外部ホストと通信するためのネットワークアドレスから割り当てられたものになります。
 
-### OpenShift環境へのログインとアプリケーション作成(CUI編)
+### OpenShift環境へのログインとアプリケーション作成(CLI編)
 上記GUI編で紹介した手順を、CLIで実行します。まずOpenShift環境にログインして、プロジェクトを作成します。
 ```
 $ sudo yum -y install atomic-openshift-clients ### OpenShiftのCLIツールインストール
@@ -563,7 +563,7 @@ OpenShift環境とGitリポジトリがネットワーク通信が可能な場�
 
 ![ビルド設定](https://github.com/h-kojima/docker/blob/master/handson/images/openshift-02.png)
 
-GUIの場合はこの画面の[Start Build]をクリックします。CUIの場合は以下のコマンドを実行します。
+GUIの場合はこの画面の[Start Build]をクリックします。CLIの場合は以下のコマンドを実行します。
 
 ```
 $ oc start-build testphp -n PROJECT_NAME
