@@ -589,7 +589,7 @@ $ oc delete all -l LABEL_NAME -n PROJECT_NAME  ### 特定のラベルが付い�
 ```
 
 ### OpenShiftの状態監視
-OpenShift環境では各Pod(Pod内のプロセス含む)やNodeの状態監視を行っており、Pod(Pod内のプロセス)やNodeに障害が発生した場合、正常NodeでPodを自動的に再起動します。
+OpenShift環境では各Pod(Pod内のプロセス含む)やNodeの状態監視を行っており、Pod(Pod内のプロセス含む)やNodeに障害が発生した場合、正常NodeでPodを自動的に再起動します。
 
 ### OpenShiftのログ
 アプリケーション作成やデプロイ時などのログについてはGUIから確認できる他に、[oc logsコマンド](https://docs.openshift.com/container-platform/latest/cli_reference/basic_cli_operations.html#troubleshooting-and-debugging-cli-operations)でも確認できます。OpenShiftではアプリケーションだけでなく、アプリケーション作成やデプロイ専用のPodも作成されるのでこれらのPodに関するログも見ることができます。
