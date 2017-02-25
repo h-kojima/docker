@@ -130,19 +130,20 @@ Complete!
 
 ```
 # docker cp /etc/yum.repos.d/local.repo test1:/etc/yum.repos.d/
-[root@fbcf771e295c /]# cat /etc/yum.repos.d/local.repo
+[root@fbcf771e295c /]# cat <<EOF > /etc/yum.repos.d/local.repo
 [local]
 name=local-repo
 baseurl=http://localhost/public/packages/
 gpgcheck=0
 enabled=1
+EOF
 [root@fbcf771e295c /]#
 ```
 コンテナ内でテスト用のPHPファイルを配置してhttpdプログラムを実行し、Webサービスを起動します。
 
 ```
 [root@fbcf771e295c /]# mkdir /var/www/html/public
-[root@fbcf771e295c /]# cat /var/www/html/public/test.php (# viエディタなどでファイルを作成して下さい)
+[root@fbcf771e295c /]# cat <<EOF > /var/www/html/public/test.php
 <html>
 <body>
 <div style="width: 100%; font-size: 40px; font-weight: bold; text-align: left;">
@@ -162,6 +163,7 @@ echo $_SERVER["REMOTE_ADDR"];
 </div>
 </body>
 </html>
+EOF
 [root@fbcf771e295c /]#
 [root@fbcf771e295c /]# /usr/sbin/httpd -DFOREGROUND
 AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using 172.17.0.2. Set the 'ServerName' directive globally to suppress this message
@@ -219,14 +221,14 @@ AH00558: httpd: Could not reliably determine the server's fully qualified domain
 ```
 # mkdir buiddir
 # cp /etc/yum.repos.d/local.repo /root/builddir/
-# cat builddir/run-apache.sh
+# cat <<EOF > builddir/run-apache.sh
 
 #!/bin/bash
 
 rm -rf /run/httpd/*
 exec /usr/sbin/httpd -D FOREGROUND
-
-# cat builddir/test.php
+EOF
+# cat <<EOF > builddir/test.php
 <html>
 <body>
 <div style="width: 100%; font-size: 40px; font-weight: bold; text-align: left;">
@@ -246,11 +248,9 @@ echo $_SERVER["REMOTE_ADDR"];
 </div>
 </body>
 </html>
+EOF
 #
-# ls builddir/
-local.repo
-#
-# cat builddir/Dockerfile
+# cat <<EOF > builddir/Dockerfile
 
 # My Docker Image
 # Version 0.1
@@ -269,6 +269,9 @@ ADD run-apache.sh /root/run-apache.sh
 RUN chmod +x /root/run-apache.sh
 
 CMD ["/root/run-apache.sh"] ### コンテナ実行時に起動するコマンド(/root/run-apache.shを実行)
+EOF
+# ls /root/builddir/
+Dockerfile local.repo run-apache.sh test.php
 ```
 
 そして、docker buildコマンドで、myrhel7_httpd02という名前のDockerイメージを作成します。
@@ -403,7 +406,7 @@ Step2. OpenShift環境をインストールするためのリポジトリ利用�
 ```
 Step3. OpenShiftのインストールにはAnsibleのPlaybookを活用します。Playbook実行用のInventoryファイルを作成し、OpenShift用に用意されたPlaybookを実行します。
 ```
-# cat /root/sample-single-hosts
+# cat <<EOF > /root/sample-single-hosts
 
 # Create an OSEv3 group that contains the master, nodes, etcd, and lb groups.
 # The lb group lets Ansible configure HAProxy as the load balancing solution.
@@ -429,7 +432,7 @@ OPENSHIFT_HOST_FQDN
 
 [nodes]
 OPENSHIFT_HOST_FQDN openshift_node_labels="{'region': 'infra'}" openshift_schedulable=true
-
+EOF
 # yum -y install atomic-openshift-utils
 # ansible-playbook -i /root/sample-single-hosts /usr/share/ansible/openshift-ansible/playbooks/byo/config.yml
 ```
