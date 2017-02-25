@@ -351,7 +351,7 @@ Hello Docker 2017-02-01<br><br>Host Name: 419a59e32b32<br>Host IP: 172.17.0.4<br
 
 ```
 # docker tag myrhel7_httpd02 localhost:5000/myrhel7_ver01
-[root@rhel-gw ~]# docker images
+# docker images
 REPOSITORY                               TAG                 IMAGE ID            CREATED             SIZE
 myrhel7_httpd02                          latest              f8370c6e0f52        9 minutes ago       267 MB
 localhost:5000/myrhel7_ver02             latest              f8370c6e0f52        9 minutes ago       267 MB
