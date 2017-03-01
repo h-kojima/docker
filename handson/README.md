@@ -30,7 +30,7 @@
 1台の物理マシンまたは仮想マシンを利用して、Docker及びDockerのプライベートリポジトリの利用手順をご紹介します。[Red Hatが公式に配布しているRHEL7のDockerイメージ](https://access.redhat.com/containers/#/repo/57ea8cee9c624c035f96f3af/image/docker)を利用して、簡単なWebサーバをデプロイします。さらに、同様のことをOpenShiftで実施するとどうなるかをご確認いただくことで、OpenShiftでのアプリケーション作成及びデプロイを体感していただきます。
 
 ## Dockerの利用準備
-Step1. Docker環境をインストールする最新版のRHEL7マシン(物理でも仮想でも可)を1台用意します。
+Step1. Docker環境をインストールする最新版のRHEL7マシン(物理でも仮想でも可)を1台用意します。評価版を利用する場合は、[こちら](https://access.redhat.com/products/red-hat-enterprise-linux/evaluation)から取得してください。
 
 Step2. Docker及びDockerのプライベートリポジトリに関連したアプリケーションをインストールして起動します。下記コマンドでは、プライベートリポジトリを利用するためのDockerの設定ファイルや、ポート番号(TCP5000番)の開放も合わせて実施しています。
 ```
@@ -395,7 +395,7 @@ Dockerのログについては、Dockerサービスで設定するロギング�
 ## OpenShiftの利用準備
 Step1. OpenShift環境をインストールする最新版のRHEL7マシン(物理でも仮想でも可)を1台用意します。
 
-Step2. OpenShift環境をインストールするためのリポジトリ利用を有効にし、SSH鍵の作成及びローカルホストへのコピーを実行します。
+Step2. OpenShift環境をインストールするためのリポジトリ利用を有効にし、SSH鍵の作成及びローカルホストへのコピーを実行します。評価版のOpenShiftを利用する場合は、[こちら](https://access.redhat.com/products/red-hat-openshift-container-platform/evaluation)から取得してください。
 ```
 # subscription-manager register --auto-attach
 # subscription-manager repos --disable="*"
