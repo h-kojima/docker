@@ -116,7 +116,7 @@ fbcf771e295c        rhel7                              "/bin/bash"         2 min
 ### コンテナ内でのアプリケーションインストールと起動
 コンテナ内でyumを使ってWebサーバ(httpdパッケージ)とPHPをインストールします。
 
-````
+```
 [root@fbcf771e295c /]# yum -y install httpd php
 ... (中略) ...
 Installed:
