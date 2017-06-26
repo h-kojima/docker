@@ -554,9 +554,170 @@ sh-4.2$
 
 上記の例では、[xip.io](https://xip.io/)をURLのドメインとして利用することで、`192.168.199.201`にアクセスするようになっています。また、各Nodeのカーネルが持っているパケット転送情報が、OpenShiftにより自動的に修正されます。そうした転送情報は各Nodeでiptablesコマンドを実施して確認できます。
 
+<details>
+  <summary>iptablesコマンドの実行結果</summary>
+  
 ```
 # iptables -t nat -nL
+Chain PREROUTING (policy ACCEPT)
+target     prot opt source               destination         
+KUBE-HOSTPORTS  all  --  0.0.0.0/0            0.0.0.0/0            /* kube hostport portals */ ADDRTYPE match dst-type LOCAL
+KUBE-SERVICES  all  --  0.0.0.0/0            0.0.0.0/0            /* kubernetes service portals */
+KUBE-PORTALS-CONTAINER  all  --  0.0.0.0/0            0.0.0.0/0            /* handle ClusterIPs; NOTE: this must be before the NodePort rules */
+DOCKER     all  --  0.0.0.0/0            0.0.0.0/0            ADDRTYPE match dst-type LOCAL
+KUBE-NODEPORT-CONTAINER  all  --  0.0.0.0/0            0.0.0.0/0            ADDRTYPE match dst-type LOCAL /* handle service NodePorts; NOTE: this must be the last rule in the chain */
+
+Chain INPUT (policy ACCEPT)
+target     prot opt source               destination         
+
+Chain OUTPUT (policy ACCEPT)
+target     prot opt source               destination         
+KUBE-HOSTPORTS  all  --  0.0.0.0/0            0.0.0.0/0            /* kube hostport portals */ ADDRTYPE match dst-type LOCAL
+KUBE-SERVICES  all  --  0.0.0.0/0            0.0.0.0/0            /* kubernetes service portals */
+KUBE-PORTALS-HOST  all  --  0.0.0.0/0            0.0.0.0/0            /* handle ClusterIPs; NOTE: this must be before the NodePort rules */
+DOCKER     all  --  0.0.0.0/0           !127.0.0.0/8          ADDRTYPE match dst-type LOCAL
+KUBE-NODEPORT-HOST  all  --  0.0.0.0/0            0.0.0.0/0            ADDRTYPE match dst-type LOCAL /* handle service NodePorts; NOTE: this must be the last rule in the chain */
+
+Chain POSTROUTING (policy ACCEPT)
+target     prot opt source               destination         
+KUBE-POSTROUTING  all  --  0.0.0.0/0            0.0.0.0/0            /* kubernetes postrouting rules */
+MASQUERADE  all  --  10.128.0.0/14        0.0.0.0/0           
+MASQUERADE  all  --  172.17.0.0/16        0.0.0.0/0           
+MASQUERADE  all  --  127.0.0.0/8          0.0.0.0/0            /* SNAT for localhost access to hostports */
+
+Chain DOCKER (2 references)
+target     prot opt source               destination         
+RETURN     all  --  0.0.0.0/0            0.0.0.0/0           
+
+Chain KUBE-HOSTPORTS (2 references)
+target     prot opt source               destination         
+
+Chain KUBE-MARK-DROP (0 references)
+target     prot opt source               destination         
+MARK       all  --  0.0.0.0/0            0.0.0.0/0            MARK or 0x8000
+
+Chain KUBE-MARK-MASQ (9 references)
+target     prot opt source               destination         
+MARK       all  --  0.0.0.0/0            0.0.0.0/0            MARK or 0x4000
+
+Chain KUBE-NODEPORT-CONTAINER (1 references)
+target     prot opt source               destination         
+
+Chain KUBE-NODEPORT-HOST (1 references)
+target     prot opt source               destination         
+
+Chain KUBE-NODEPORTS (1 references)
+target     prot opt source               destination         
+
+Chain KUBE-PORTALS-CONTAINER (1 references)
+target     prot opt source               destination         
+
+Chain KUBE-PORTALS-HOST (1 references)
+target     prot opt source               destination         
+
+Chain KUBE-POSTROUTING (1 references)
+target     prot opt source               destination         
+MASQUERADE  all  --  0.0.0.0/0            0.0.0.0/0            /* kubernetes service traffic requiring SNAT */ mark match 0x4000/0x4000
+
+Chain KUBE-SEP-E6FCPDCMETE5EXAN (1 references)
+target     prot opt source               destination         
+KUBE-MARK-MASQ  all  --  192.168.199.201        0.0.0.0/0            /* default/router:1936-tcp */
+DNAT       tcp  --  0.0.0.0/0            0.0.0.0/0            /* default/router:1936-tcp */ tcp to:192.168.199.201:1936
+
+Chain KUBE-SEP-EF7GKFWKZ4WP7JXO (1 references)
+target     prot opt source               destination         
+KUBE-MARK-MASQ  all  --  10.128.0.16          0.0.0.0/0            /* test1/testphp01:8080-tcp */
+DNAT       tcp  --  0.0.0.0/0            0.0.0.0/0            /* test1/testphp01:8080-tcp */ tcp to:10.128.0.16:8080
+
+Chain KUBE-SEP-GBVT36Z4B6AP2NV2 (1 references)
+target     prot opt source               destination         
+KUBE-MARK-MASQ  all  --  192.168.199.201        0.0.0.0/0            /* default/router:80-tcp */
+DNAT       tcp  --  0.0.0.0/0            0.0.0.0/0            /* default/router:80-tcp */ tcp to:192.168.199.201:80
+
+Chain KUBE-SEP-HOZY5FQONK4KRS62 (1 references)
+target     prot opt source               destination         
+KUBE-MARK-MASQ  all  --  192.168.199.201        0.0.0.0/0            /* default/router:443-tcp */
+DNAT       tcp  --  0.0.0.0/0            0.0.0.0/0            /* default/router:443-tcp */ tcp to:192.168.199.201:443
+
+Chain KUBE-SEP-K76MIZIYCKNTVL37 (2 references)
+target     prot opt source               destination         
+KUBE-MARK-MASQ  all  --  192.168.199.201        0.0.0.0/0            /* default/kubernetes:https */
+DNAT       tcp  --  0.0.0.0/0            0.0.0.0/0            /* default/kubernetes:https */ recent: SET name: KUBE-SEP-K76MIZIYCKNTVL37 side: source mask: 255.255.255.255 tcp to:192.168.199.201:8443
+
+Chain KUBE-SEP-KJVBOMJWEK6E2NP2 (2 references)
+target     prot opt source               destination         
+KUBE-MARK-MASQ  all  --  192.168.199.201        0.0.0.0/0            /* default/kubernetes:dns-tcp */
+DNAT       tcp  --  0.0.0.0/0            0.0.0.0/0            /* default/kubernetes:dns-tcp */ recent: SET name: KUBE-SEP-KJVBOMJWEK6E2NP2 side: source mask: 255.255.255.255 tcp to:192.168.199.201:8053
+
+Chain KUBE-SEP-MHACG4N3F3GEY3TM (2 references)
+target     prot opt source               destination         
+KUBE-MARK-MASQ  all  --  10.128.0.13          0.0.0.0/0            /* default/docker-registry:5000-tcp */
+DNAT       tcp  --  0.0.0.0/0            0.0.0.0/0            /* default/docker-registry:5000-tcp */ recent: SET name: KUBE-SEP-MHACG4N3F3GEY3TM side: source mask: 255.255.255.255 tcp to:10.128.0.13:5000
+
+Chain KUBE-SEP-N7YD3EF5Y5FBWLG6 (2 references)
+target     prot opt source               destination         
+KUBE-MARK-MASQ  all  --  192.168.199.201        0.0.0.0/0            /* default/kubernetes:dns */
+DNAT       udp  --  0.0.0.0/0            0.0.0.0/0            /* default/kubernetes:dns */ recent: SET name: KUBE-SEP-N7YD3EF5Y5FBWLG6 side: source mask: 255.255.255.255 udp to:192.168.199.201:8053
+
+Chain KUBE-SEP-VNGJR45WXLZKZWIE (1 references)
+target     prot opt source               destination         
+KUBE-MARK-MASQ  all  --  10.128.0.12          0.0.0.0/0            /* default/registry-console:registry-console */
+DNAT       tcp  --  0.0.0.0/0            0.0.0.0/0            /* default/registry-console:registry-console */ tcp to:10.128.0.12:9090
+
+Chain KUBE-SERVICES (2 references)
+target     prot opt source               destination         
+KUBE-SVC-GQKZAHCS5DTMHUQ6  tcp  --  0.0.0.0/0            172.30.195.156       /* default/router:80-tcp cluster IP */ tcp dpt:80
+KUBE-SVC-IKV43KYNCXS2W7KZ  tcp  --  0.0.0.0/0            172.30.195.156       /* default/router:443-tcp cluster IP */ tcp dpt:443
+KUBE-SVC-BA6I5HTZKAAAJT56  tcp  --  0.0.0.0/0            172.30.0.1           /* default/kubernetes:dns-tcp cluster IP */ tcp dpt:53
+KUBE-SVC-DEGCXZMVXZMJS2KL  tcp  --  0.0.0.0/0            172.30.107.125       /* default/registry-console:registry-console cluster IP */ tcp dpt:9000
+KUBE-SVC-4JCRTMMYZAAYMIJ2  tcp  --  0.0.0.0/0            172.30.195.156       /* default/router:1936-tcp cluster IP */ tcp dpt:1936
+KUBE-SVC-ECTPRXTXBM34L34Q  tcp  --  0.0.0.0/0            172.30.235.3         /* default/docker-registry:5000-tcp cluster IP */ tcp dpt:5000
+KUBE-SVC-NPX46M4PTMTKRN6Y  tcp  --  0.0.0.0/0            172.30.0.1           /* default/kubernetes:https cluster IP */ tcp dpt:443
+KUBE-SVC-3VQ6B3MLH7E2SZT4  udp  --  0.0.0.0/0            172.30.0.1           /* default/kubernetes:dns cluster IP */ udp dpt:53
+KUBE-SVC-GQPEHBXW7I4ENKJT  tcp  --  0.0.0.0/0            172.30.73.69         /* test1/testphp01:8080-tcp cluster IP */ tcp dpt:8080
+KUBE-NODEPORTS  all  --  0.0.0.0/0            0.0.0.0/0            /* kubernetes service nodeports; NOTE: this must be the last rule in this chain */ ADDRTYPE match dst-type LOCAL
+
+Chain KUBE-SVC-3VQ6B3MLH7E2SZT4 (1 references)
+target     prot opt source               destination         
+KUBE-SEP-N7YD3EF5Y5FBWLG6  all  --  0.0.0.0/0            0.0.0.0/0            /* default/kubernetes:dns */ recent: CHECK seconds: 180 reap name: KUBE-SEP-N7YD3EF5Y5FBWLG6 side: source mask: 255.255.255.255
+KUBE-SEP-N7YD3EF5Y5FBWLG6  all  --  0.0.0.0/0            0.0.0.0/0            /* default/kubernetes:dns */
+
+Chain KUBE-SVC-4JCRTMMYZAAYMIJ2 (1 references)
+target     prot opt source               destination         
+KUBE-SEP-E6FCPDCMETE5EXAN  all  --  0.0.0.0/0            0.0.0.0/0            /* default/router:1936-tcp */
+
+Chain KUBE-SVC-BA6I5HTZKAAAJT56 (1 references)
+target     prot opt source               destination         
+KUBE-SEP-KJVBOMJWEK6E2NP2  all  --  0.0.0.0/0            0.0.0.0/0            /* default/kubernetes:dns-tcp */ recent: CHECK seconds: 180 reap name: KUBE-SEP-KJVBOMJWEK6E2NP2 side: source mask: 255.255.255.255
+KUBE-SEP-KJVBOMJWEK6E2NP2  all  --  0.0.0.0/0            0.0.0.0/0            /* default/kubernetes:dns-tcp */
+
+Chain KUBE-SVC-DEGCXZMVXZMJS2KL (1 references)
+target     prot opt source               destination         
+KUBE-SEP-VNGJR45WXLZKZWIE  all  --  0.0.0.0/0            0.0.0.0/0            /* default/registry-console:registry-console */
+
+Chain KUBE-SVC-ECTPRXTXBM34L34Q (1 references)
+target     prot opt source               destination         
+KUBE-SEP-MHACG4N3F3GEY3TM  all  --  0.0.0.0/0            0.0.0.0/0            /* default/docker-registry:5000-tcp */ recent: CHECK seconds: 180 reap name: KUBE-SEP-MHACG4N3F3GEY3TM side: source mask: 255.255.255.255
+KUBE-SEP-MHACG4N3F3GEY3TM  all  --  0.0.0.0/0            0.0.0.0/0            /* default/docker-registry:5000-tcp */
+
+Chain KUBE-SVC-GQKZAHCS5DTMHUQ6 (1 references)
+target     prot opt source               destination         
+KUBE-SEP-GBVT36Z4B6AP2NV2  all  --  0.0.0.0/0            0.0.0.0/0            /* default/router:80-tcp */
+
+Chain KUBE-SVC-GQPEHBXW7I4ENKJT (1 references)
+target     prot opt source               destination         
+KUBE-SEP-EF7GKFWKZ4WP7JXO  all  --  0.0.0.0/0            0.0.0.0/0            /* test1/testphp01:8080-tcp */
+
+Chain KUBE-SVC-IKV43KYNCXS2W7KZ (1 references)
+target     prot opt source               destination         
+KUBE-SEP-HOZY5FQONK4KRS62  all  --  0.0.0.0/0            0.0.0.0/0            /* default/router:443-tcp */
+
+Chain KUBE-SVC-NPX46M4PTMTKRN6Y (1 references)
+target     prot opt source               destination         
+KUBE-SEP-K76MIZIYCKNTVL37  all  --  0.0.0.0/0            0.0.0.0/0            /* default/kubernetes:https */ recent: CHECK seconds: 180 reap name: KUBE-SEP-K76MIZIYCKNTVL37 side: source mask: 255.255.255.255
+KUBE-SEP-K76MIZIYCKNTVL37  all  --  0.0.0.0/0            0.0.0.0/0            /* default/kubernetes:https */
 ```
+</details>
 
 ### OpenShiftでのアプリケーション更改
 
