@@ -386,7 +386,22 @@ CONTAINER           CPU %               MEM USAGE / LIMIT       MEM %           
 
 ### Dockerのログ
 
-Dockerのログについては、Dockerサービスで設定するロギング・ドライバ(デフォルトはjournald)と、各コンテナ実行時に指定するロギング・ドライバ(デフォルトはDockerサービスで指定しているロギング・ドライバ)を利用して出力できます。ロギング・ドライバについては、syslog/journald/fluentd/awslogsなどを利用できます。詳細は[こちら](https://docs.docker.com/engine/admin/logging/overview/)をご参照ください。
+Dockerのログについては、Dockerサービスで設定するロギング・ドライバ(デフォルトはjournald)と、各コンテナ実行時に指定するロギング・ドライバ(デフォルトはDockerサービスで指定しているロギング・ドライバ)を利用して出力できます。ロギング・ドライバについては、syslog/journald/fluentd/awslogsなどを利用できます。
+
+例を挙げておくと、journaldをロギング・ドライバとして利用する場合のDockerサービスのログは、次のコマンドを実行して取得できます。
+
+```
+# journalctl -u docker.service
+```
+
+また、各コンテナのログは`docker logs`コマンドで取得できます。`-f`オプションを利用してログをリアルタイムに出力することもできます。
+
+```
+### Follow the log of CONTAINER_NAME ###
+# docker logs -f CONTAINER_NAME
+```
+
+詳細は[こちら](https://docs.docker.com/engine/admin/logging/overview/)をご参照ください。
 
 ### Dockerの各種コマンド
 
