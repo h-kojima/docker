@@ -543,7 +543,7 @@ NAME       HOST/PORT                                PATH       SERVICES   PORT  
 testphp01  testphp01-test1.192.168.199.201.xip.io              testphp01  8080-tcp
 ```
 
-oc exposeコマンドにより自動的に外部からのアクセス用URLが作成され、このURLを利用して外部ホストからアプリケーションにアクセスできるようになります。こうしたルーティングを定義することで、対応する設定がOpenShift環境のHAProxyコンテナ(OpenShift環境の管理者のみアクセス可能なdefaultプロジェクトに`router`という名前のPodとして存在)に自動的に追加され、URLベースのルーティングが実施されるようになります。
+oc exposeコマンドにより自動的に外部からのアクセス用URLが作成され、このURLを利用して外部ホストからアプリケーションにアクセスできるようになります。こうしたPodへのルーティングを定義することで、対応する設定がOpenShift環境のHAProxyコンテナ(OpenShift環境の管理者のみアクセス可能なdefaultプロジェクトに`router`という名前のPodとして存在)に自動的に追加され、URLベースのルーティングが実施されるようになります。
 
 ```
 # oc login -u system:admin ### OpenShift環境の管理者権限でログイン
