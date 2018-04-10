@@ -27,7 +27,7 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Docker/OpenShift のハンズオンテキスト
-1台の物理マシンまたは仮想マシンを利用して、Docker及びDockerのプライベートリポジトリの利用手順をご紹介します。[Red Hatが公式に配布しているRHEL7のDockerイメージ](https://access.redhat.com/containers/#/repo/57ea8cee9c624c035f96f3af/image/docker)を利用して、簡単なWebサーバをデプロイします。さらに、同様のことをOpenShiftで実施するとどうなるかをご確認いただくことで、OpenShiftでのアプリケーション作成及びデプロイを体感していただきます。
+1台の物理マシンまたは仮想マシンを利用して、Docker及びDockerのプライベートリポジトリの利用手順をご紹介します。[Red Hatが公式に配布しているRHEL7のDockerイメージ](https://access.redhat.com/containers/#/repo/57ea8cee9c624c035f96f3af/image/docker)を利用して、簡単なWebサーバをデプロイします。さらに、同様のことをOpenShiftで実施するとどうなるかをご確認いただくことで、OpenShiftでのアプリケーション作成及びデプロイを体感していただきます。なお、OpenShiftのバージョンは3.4を想定します。
 
 ## Dockerの利用準備
 Step1. Docker環境をインストールする最新版のRHEL7マシン(物理でも仮想でも可)を1台用意します。評価版を利用する場合は、[こちら](https://access.redhat.com/products/red-hat-enterprise-linux/evaluation)から取得してください。
