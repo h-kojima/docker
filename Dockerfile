@@ -1,4 +1,4 @@
-FROM registry.redhat.io/rhel6
+FROM quay.io/generic/rhel6
 
 RUN yum -y install httpd; \
     yum clean all
