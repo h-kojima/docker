@@ -1,4 +1,4 @@
-FROM quay.io/generic/rhel6
+FROM docker.io/library/centos:centos6
 
 RUN yum -y install httpd; \
     yum clean all
