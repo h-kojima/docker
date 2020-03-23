@@ -5,7 +5,8 @@ RUN yum -y install httpd; \
 
 RUN sed -i 's/Listen 80/Listen 8080/' /etc/httpd/conf/httpd.conf; \
     echo "ServerName localhost:8080" >> /etc/httpd/conf/httpd.conf; \
-    echo "Test HTTPD Container." > /var/www/html/index.html
+    echo "Test HTTPD Container." > /var/www/html/index.html; \
+    chmod -R 777 /var/log/httpd /var/run/httpd
 
 EXPOSE 8080
 
